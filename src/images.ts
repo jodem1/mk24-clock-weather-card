@@ -1,3 +1,4 @@
+// Fill/line weather SVGs use Catppuccin Frappe–aligned colors; after sync-icons run scripts/remap-weather-icons-catppuccin-frappe.py
 import animatedFillPartlyCloudyNightRain from './icons/fill/svg/partly-cloudy-night-rain.svg'
 import animatedLinePartlyCloudyNightRain from './icons/line/svg/partly-cloudy-night-rain.svg'
 import animatedFillPartlyCloudyDayRain from './icons/fill/svg/partly-cloudy-day-rain.svg'
