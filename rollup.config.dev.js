@@ -11,6 +11,7 @@ export default {
   output: {
     dir: './dist',
     format: 'es',
+    entryFileNames: 'mk24-clock-weather-card.js',
   },
   plugins: [
     image(),
