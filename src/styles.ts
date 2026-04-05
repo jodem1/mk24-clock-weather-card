@@ -99,7 +99,7 @@ export default css`
     background-color: var(--primary-color);
     border-radius: 50%;
     width: var(--bar-height);
-    box-shadow: inset 0 0 0 var(--border-width) var(--text-light-primary-color);
+    box-shadow: inset 0 0 0 var(--border-width) white;
     margin-left: calc(var(--move-right) * -1 * var(--bar-height));
   }
 
