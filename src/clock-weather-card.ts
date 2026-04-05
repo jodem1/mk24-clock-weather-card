@@ -44,21 +44,31 @@ console.info(
 // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
 (window as any).customCards = (window as any).customCards || [];
 (window as any).customCards.push({
-  type: 'clock-weather-card',
-  name: 'Clock Weather Card',
+  type: 'mk24-clock-weather-card',
+  name: 'Clock Weather Card MK24 Fork',
   description: 'Shows the current date/time in combination with the current weather and an iOS insipired weather forecast.'
 })
 
-const gradientMap: Map<number, Rgb> = new Map()
-  .set(-20, new Rgb(0, 60, 98)) // dark blue
-  .set(-10, new Rgb(120, 162, 204)) // darker blue
-  .set(0, new Rgb(164, 195, 210)) // light blue
-  .set(10, new Rgb(121, 210, 179)) // turquoise
-  .set(20, new Rgb(252, 245, 112)) // yellow
-  .set(30, new Rgb(255, 150, 79)) // orange
-  .set(40, new Rgb(255, 192, 159)) // red
+// const gradientMap: Map<number, Rgb> = new Map()
+//   .set(-20, new Rgb(0, 60, 98)) // dark blue
+//   .set(-10, new Rgb(120, 162, 204)) // darker blue
+//   .set(0, new Rgb(164, 195, 210)) // light blue
+//   .set(10, new Rgb(121, 210, 179)) // turquoise
+//   .set(20, new Rgb(252, 245, 112)) // yellow
+//   .set(30, new Rgb(255, 150, 79)) // orange
+//   .set(40, new Rgb(255, 192, 159)) // red
 
-@customElement('clock-weather-card')
+// Override gradientMap with Catppuccin Frappé colors
+const gradientMap: Map<number, Rgb> = new Map()
+  .set(-20, new Rgb(35, 38, 52))   // crust #232634 — coldest
+  .set(-10, new Rgb(65, 69, 89))   // surface0 #414559
+  .set(0, new Rgb(133, 193, 220))  // sapphire #85c1dc
+  .set(10, new Rgb(129, 200, 190)) // teal #81c8be
+  .set(20, new Rgb(229, 200, 144)) // yellow #e5c890
+  .set(30, new Rgb(239, 159, 118)) // peach #ef9f76
+  .set(40, new Rgb(231, 130, 132)) // red #e78284 — hottest
+
+@customElement('mk24-clock-weather-card')
 export class ClockWeatherCard extends LitElement {
   // https://lit.dev/docs/components/properties/
   @property({ attribute: false }) public hass!: HomeAssistant
