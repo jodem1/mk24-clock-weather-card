@@ -96,7 +96,7 @@ export default css`
 
   forecast-temperature-bar-current-indicator-dot {
     --border-width: 2px;
-    background-color: var(--primary-text-color);
+    background-color: var(--primary-color);
     border-radius: 50%;
     width: var(--bar-height);
     box-shadow: inset 0 0 0 var(--border-width) var(--text-light-primary-color);
