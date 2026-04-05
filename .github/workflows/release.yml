@@ -1,38 +1,36 @@
 name: Release
 
+# Publishes dist/mk24-clock-weather-card.js to the GitHub Release that triggered this run.
+# (Optional for HACS default listing: enable Issues + add topics — see https://hacs.xyz/docs/publish/include )
+
 on:
   release:
     types: [published]
+
+permissions:
+  contents: write
 
 jobs:
   release:
     name: Prepare release
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v6
 
       - uses: actions/setup-node@v6
         with:
           node-version: 24
+          cache: yarn
 
-      - name: Build the file
+      - name: Install and build
         run: |
           yarn install
           yarn build
-        working-directory: ${{ github.workspace }}
 
-      - name: Upload zip to release
-        uses: svenstaro/upload-release-action@v1-release
-
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ github.workspace }}/dist/mk24-clock-weather-card.js
-          asset_name: mk24-clock-weather-card.js
-          tag: ${{ github.ref }}
-          overwrite: true
-
-      - name: Verify HACS compliance
-        uses: hacs/action@main
-        with:
-          category: plugin
+      - name: Upload mk24-clock-weather-card.js to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd dist
+          gh release upload "${{ github.ref_name }}" mk24-clock-weather-card.js \
+            --clobber --repo "${{ github.repository }}"
