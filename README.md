@@ -118,6 +118,14 @@ time_zone: null
 show_decimal: false
 apparent_sensor: sensor.real_feel_temperature
 aqi_sensor: sensor.air_quality_index
+temperature_gradient_colors:
+  - "#003c62"
+  - "#78a2cc"
+  - "#a4c3d2"
+  - "#79d2b3"
+  - "#fcf570"
+  - "#ff964f"
+  - "#ffc09f"
 ```
 
 ### Options
@@ -148,6 +156,29 @@ aqi_sensor: sensor.air_quality_index
 | show_decimal          | boolean          | **Optional** | Displays main temperature without rounding                                                                                                                                                                                        | `false`   |
 | apparent_sensor       | string           | **Optional** | ID of the apparent temperature sensor entity. It is used to show the apparent temperature based on a sensor and will only show it if value is provided.                                                                           | `''`      |
 | aqi_sensor       | string           | **Optional** | ID of the Air Quality Index sensor entity. It is used to show the AQI based on a sensor and will only show it if value is provided.                                                                           | `''`      |
+| temperature_gradient_colors | string[]    | **Optional** | Colors for fixed forecast bar temperature stops in this order: `-20, -10, 0, 10, 20, 30, 40` (deg C). Accepts `#RRGGBB`, `rgb()/rgba()`, and `var(--my-color)`. Must contain exactly 7 values.                                 | upstream palette |
+
+### Styling (CSS variables)
+
+You can customize parts of the card styling by overriding these CSS variables on the card:
+
+| Variable | Description | Default |
+| --- | --- | --- |
+| `--clock-weather-indicator-background-color` | Background color of the current temperature indicator dot in the forecast bar. | `var(--primary-color)` |
+| `--clock-weather-indicator-box-shadow` | Box shadow for the current temperature indicator dot. | `inset 0 0 0 2px white` |
+
+Example override with `card-mod`:
+
+```yaml
+type: custom:clock-weather-card
+entity: weather.home
+card_mod:
+  style: |
+    ha-card {
+      --clock-weather-indicator-background-color: var(--primary-text-color);
+      --clock-weather-indicator-box-shadow: inset 0 0 0 2px var(--card-background-color);
+    }
+```
 
 ## Footnotes
 

@@ -49,24 +49,18 @@ console.info(
   description: 'Shows the current date/time in combination with the current weather and an iOS insipired weather forecast.'
 })
 
-// const gradientMap: Map<number, Rgb> = new Map()
-//   .set(-20, new Rgb(0, 60, 98)) // dark blue
-//   .set(-10, new Rgb(120, 162, 204)) // darker blue
-//   .set(0, new Rgb(164, 195, 210)) // light blue
-//   .set(10, new Rgb(121, 210, 179)) // turquoise
-//   .set(20, new Rgb(252, 245, 112)) // yellow
-//   .set(30, new Rgb(255, 150, 79)) // orange
-//   .set(40, new Rgb(255, 192, 159)) // red
+const gradientStops = [-20, -10, 0, 10, 20, 30, 40]
 
-// Override gradientMap with Catppuccin Frappé colors
-const gradientMap: Map<number, Rgb> = new Map()
-  .set(-20, new Rgb(35, 38, 52))   // crust #232634 — coldest
-  .set(-10, new Rgb(65, 69, 89))   // surface0 #414559
-  .set(0, new Rgb(133, 193, 220))  // sapphire #85c1dc
-  .set(10, new Rgb(129, 200, 190)) // teal #81c8be
-  .set(20, new Rgb(229, 200, 144)) // yellow #e5c890
-  .set(30, new Rgb(239, 159, 118)) // peach #ef9f76
-  .set(40, new Rgb(231, 130, 132)) // red #e78284 — hottest
+// Default gradient colors (upstream/original palette)
+const defaultGradientColors = [
+  '#003c62', // dark blue
+  '#78a2cc', // darker blue
+  '#a4c3d2', // light blue
+  '#79d2b3', // turquoise
+  '#fcf570', // yellow
+  '#ff964f', // orange
+  '#ffc09f' // red
+]
 
 @customElement('mk24-clock-weather-card')
 export class ClockWeatherCard extends LitElement {
@@ -121,6 +115,16 @@ export class ClockWeatherCard extends LitElement {
 
     if (config.hide_today_section && config.hide_forecast_section) {
       throw this.createError('Attributes "hide_today_section" and "hide_forecast_section" must not enabled at the same time.')
+    }
+
+    if (config.temperature_gradient_colors) {
+      if (config.temperature_gradient_colors.length !== gradientStops.length) {
+        throw this.createError(`Attribute "temperature_gradient_colors" must contain exactly ${gradientStops.length} colors.`)
+      }
+      const hasInvalidColor = config.temperature_gradient_colors.some((color) => !this.isValidGradientColor(color))
+      if (hasInvalidColor) {
+        throw this.createError('Attribute "temperature_gradient_colors" must contain #RRGGBB, rgb()/rgba(), or var(--my-color) values.')
+      }
     }
 
     this.config = this.mergeConfig(config)
@@ -370,7 +374,7 @@ export class ClockWeatherCard extends LitElement {
     const minTempDayCelsius = this.toCelsius(temperatureUnit, minTempDay)
     const maxTempDayCelsius = this.toCelsius(temperatureUnit, maxTempDay)
 
-    const outputGradient = ([...gradientMap.entries()]
+    const outputGradient = ([...this.getConfiguredGradientMap().entries()]
       .reduce((gradient, [temp, color], index, arr) => {
         if (index === 0) {
           // First color
@@ -462,8 +466,83 @@ export class ClockWeatherCard extends LitElement {
       time_zone: config.time_zone ?? undefined,
       show_decimal: config.show_decimal ?? false,
       apparent_sensor: config.apparent_sensor ?? undefined,
-      aqi_sensor: config.aqi_sensor ?? undefined
+      aqi_sensor: config.aqi_sensor ?? undefined,
+      temperature_gradient_colors: config.temperature_gradient_colors
     }
+  }
+
+  private getConfiguredGradientMap (): Map<number, Rgb> {
+    const gradientColors = this.config.temperature_gradient_colors ?? defaultGradientColors
+    return new Map(
+      gradientStops.map((stop, index) => [stop, this.resolveGradientColorToRgb(gradientColors[index], defaultGradientColors[index])] as [number, Rgb])
+    )
+  }
+
+  private isValidGradientColor (color: string): boolean {
+    const value = color.trim()
+    return this.isHexColor(value) || this.isRgbColor(value) || this.isCssVariable(value)
+  }
+
+  private isHexColor (color: string): boolean {
+    return /^#[0-9a-fA-F]{6}$/.test(color.trim())
+  }
+
+  private isCssVariable (color: string): boolean {
+    return /^var\(\s*--[A-Za-z0-9-_]+\s*\)$/.test(color.trim())
+  }
+
+  private isRgbColor (color: string): boolean {
+    return /^rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}(?:\s*,\s*(?:0|1|0?\.\d+))?\s*\)$/i.test(color.trim())
+  }
+
+  private hexToRgb (hex: string): Rgb {
+    const normalized = hex.trim().replace('#', '')
+    return new Rgb(
+      parseInt(normalized.slice(0, 2), 16),
+      parseInt(normalized.slice(2, 4), 16),
+      parseInt(normalized.slice(4, 6), 16)
+    )
+  }
+
+  private resolveGradientColorToRgb (color: string, fallbackHex: string): Rgb {
+    const value = color.trim()
+    const directColor = this.colorStringToRgb(value)
+    if (directColor) {
+      return directColor
+    }
+
+    const cssVarName = this.getCssVarName(value)
+    if (!cssVarName) {
+      return this.hexToRgb(fallbackHex)
+    }
+
+    const localValue = getComputedStyle(this as unknown as Element).getPropertyValue(cssVarName).trim()
+    const rootValue = getComputedStyle(document.documentElement).getPropertyValue(cssVarName).trim()
+    return this.colorStringToRgb(localValue) ?? this.colorStringToRgb(rootValue) ?? this.hexToRgb(fallbackHex)
+  }
+
+  private getCssVarName (value: string): string | null {
+    const match = value.match(/^var\(\s*(--[A-Za-z0-9-_]+)\s*\)$/)
+    return match?.[1] ?? null
+  }
+
+  private colorStringToRgb (value: string): Rgb | null {
+    const normalized = value.trim()
+    if (this.isHexColor(normalized)) {
+      return this.hexToRgb(normalized)
+    }
+
+    const rgbMatch = normalized.match(/^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*(\d*\.?\d+))?\s*\)$/i)
+    if (!rgbMatch) {
+      return null
+    }
+
+    const channels = [rgbMatch[1], rgbMatch[2], rgbMatch[3]].map(Number)
+    if (channels.some((channel) => channel < 0 || channel > 255)) {
+      return null
+    }
+
+    return new Rgb(channels[0], channels[1], channels[2])
   }
 
   private toIcon (weatherState: string, type: 'fill' | 'line', forceDay: boolean, kind: 'static' | 'animated'): string {
