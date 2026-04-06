@@ -4,9 +4,6 @@ export default css`
 
   ha-card {
     --bar-height: 1.5rem;
-    --border-width: 2px;
-    --clock-weather-indicator-background-color: var(--primary-text-color);
-    --clock-weather-indicator-box-shadow: inset 0 0 0 var(--border-width) var(--text-light-primary-color);
     height: 100%;
   }
 
@@ -98,10 +95,11 @@ export default css`
   }
 
   forecast-temperature-bar-current-indicator-dot {
-    background-color: var(--clock-weather-indicator-background-color);
+    --border-width: 2px;
+    background-color: var(--clock-weather-indicator-background-color, var(--primary-text-color));
     border-radius: 50%;
     width: var(--bar-height);
-    box-shadow: var(--clock-weather-indicator-box-shadow);
+    box-shadow: var(--clock-weather-indicator-box-shadow, inset 0 0 0 var(--border-width) var(--text-light-primary-color));
     margin-left: calc(var(--move-right) * -1 * var(--bar-height));
   }
 
