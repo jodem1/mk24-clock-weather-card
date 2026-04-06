@@ -118,15 +118,30 @@ time_zone: null
 show_decimal: false
 apparent_sensor: sensor.real_feel_temperature
 aqi_sensor: sensor.air_quality_index
-temperature_gradient_colors:
-  - "#003c62"
-  - "#78a2cc"
-  - "#a4c3d2"
-  - "#79d2b3"
-  - "#fcf570"
-  - "#ff964f"
-  - "#ffc09f"
+# Optional: override forecast bar colors. Values use the same unit as your weather entity (`temperature_unit`).
+# Omit to use the built-in gradient (stops and colors below).
+# temperature_color_thresholds:
+#   - value: 0
+#     color: "#e78284"
+#   - value: 18
+#     color: "#e5c890"
+#   - value: 20
+#     color: "#a6d189"
 ```
+
+### Default forecast bar gradient
+
+If you do not set `temperature_color_thresholds`, the card uses this fixed scale. Temperature stops are always **degrees Celsius** on the scale (the bar still reflects each row’s min–max in your weather entity’s unit); colors blend between adjacent stops.
+
+| Stop (°C) | Color   | Note (upstream palette) |
+| --------- | ------- | ----------------------- |
+| −20       | `#003c62` | Dark blue               |
+| −10       | `#78a2cc` | Darker blue             |
+| 0         | `#a4c3d2` | Light blue              |
+| 10        | `#79d2b3` | Turquoise               |
+| 20        | `#fcf570` | Yellow                  |
+| 30        | `#ff964f` | Orange                  |
+| 40        | `#ffc09f` | Red / light coral       |
 
 ### Options
 
@@ -156,7 +171,7 @@ temperature_gradient_colors:
 | show_decimal          | boolean          | **Optional** | Displays main temperature without rounding                                                                                                                                                                                        | `false`   |
 | apparent_sensor       | string           | **Optional** | ID of the apparent temperature sensor entity. It is used to show the apparent temperature based on a sensor and will only show it if value is provided.                                                                           | `''`      |
 | aqi_sensor       | string           | **Optional** | ID of the Air Quality Index sensor entity. It is used to show the AQI based on a sensor and will only show it if value is provided.                                                                           | `''`      |
-| temperature_gradient_colors | string[]    | **Optional** | Colors for fixed forecast bar temperature stops in this order: `-20, -10, 0, 10, 20, 30, 40` (deg C). Accepts `#RRGGBB`, `rgb()/rgba()`, and `var(--my-color)`. Must contain exactly 7 values.                                 | upstream palette |
+| temperature_color_thresholds | list      | **Optional** | Each item: `value` (number) and `color` (`#RRGGBB`, `rgb()/rgba()`, or `var(--token)`). Customizes the forecast temperature bar, similar to [mini-graph-card `color_thresholds`](https://github.com/kalkih/mini-graph-card). Thresholds use the **weather entity’s** `temperature_unit` (°C or °F). At least 2 entries when set. If omitted, see [Default forecast bar gradient](#default-forecast-bar-gradient). | built-in gradient |
 
 ### Styling (CSS variables)
 

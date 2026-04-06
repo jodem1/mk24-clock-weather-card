@@ -9,6 +9,12 @@ declare global {
   }
 }
 
+/** Temperature (in the weather entity's unit) and bar segment color (like mini-graph-card `color_thresholds`). */
+export interface TemperatureColorThreshold {
+  value: number
+  color: string
+}
+
 export interface ClockWeatherCardConfig extends LovelaceCardConfig {
   entity: string
   title?: string
@@ -33,7 +39,8 @@ export interface ClockWeatherCardConfig extends LovelaceCardConfig {
   show_decimal?: boolean
   apparent_sensor?: string
   aqi_sensor?: string
-  temperature_gradient_colors?: string[]
+  /** Optional; omit to use the built-in palette at stops −20…40 °C (see README). */
+  temperature_color_thresholds?: TemperatureColorThreshold[]
 }
 
 export interface MergedClockWeatherCardConfig extends LovelaceCardConfig {
@@ -60,7 +67,7 @@ export interface MergedClockWeatherCardConfig extends LovelaceCardConfig {
   show_decimal: boolean
   apparent_sensor?: string
   aqi_sensor?: string
-  temperature_gradient_colors?: string[]
+  temperature_color_thresholds?: TemperatureColorThreshold[]
 }
 
 export const enum WeatherEntityFeature {

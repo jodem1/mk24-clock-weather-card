@@ -117,13 +117,33 @@ export class ClockWeatherCard extends LitElement {
       throw this.createError('Attributes "hide_today_section" and "hide_forecast_section" must not enabled at the same time.')
     }
 
-    if (config.temperature_gradient_colors) {
-      if (config.temperature_gradient_colors.length !== gradientStops.length) {
-        throw this.createError(`Attribute "temperature_gradient_colors" must contain exactly ${gradientStops.length} colors.`)
+    const legacyGradient = (config as { temperature_gradient_colors?: unknown }).temperature_gradient_colors
+    if (Array.isArray(legacyGradient) && legacyGradient.length > 0) {
+      throw this.createError('Option "temperature_gradient_colors" is no longer supported. Use "temperature_color_thresholds" instead (see README).')
+    }
+
+    const thresholds = config.temperature_color_thresholds
+    if (thresholds != null && thresholds.length > 0) {
+      if (thresholds.length < 2) {
+        throw this.createError('Attribute "temperature_color_thresholds" must contain at least 2 entries.')
       }
-      const hasInvalidColor = config.temperature_gradient_colors.some((color) => !this.isValidGradientColor(color))
-      if (hasInvalidColor) {
-        throw this.createError('Attribute "temperature_gradient_colors" must contain #RRGGBB, rgb()/rgba(), or var(--my-color) values.')
+      for (let i = 0; i < thresholds.length; i++) {
+        const entry = thresholds[i]
+        if (entry == null || typeof entry !== 'object') {
+          throw this.createError(`Attribute "temperature_color_thresholds[${i}]" must be an object with "value" and "color".`)
+        }
+        const rawValue = (entry as { value?: unknown }).value
+        const num = typeof rawValue === 'number' ? rawValue : parseFloat(String(rawValue))
+        if (Number.isNaN(num)) {
+          throw this.createError(`Attribute "temperature_color_thresholds[${i}].value" must be a number.`)
+        }
+        const color = (entry as { color?: string }).color
+        if (typeof color !== 'string' || !color.trim()) {
+          throw this.createError(`Attribute "temperature_color_thresholds[${i}].color" must be a non-empty string.`)
+        }
+        if (!this.isValidGradientColor(color)) {
+          throw this.createError('Each "temperature_color_thresholds" color must be #RRGGBB, rgb()/rgba(), or var(--my-color).')
+        }
       }
     }
 
@@ -445,8 +465,12 @@ export class ClockWeatherCard extends LitElement {
   }
 
   private mergeConfig (config: ClockWeatherCardConfig): MergedClockWeatherCardConfig {
+    const { temperature_gradient_colors: _removed, ...rest } = config as ClockWeatherCardConfig & {
+      temperature_gradient_colors?: string[]
+    }
+    void _removed
     return {
-      ...config,
+      ...rest,
       sun_entity: config.sun_entity ?? 'sun.sun',
       temperature_sensor: config.temperature_sensor,
       humidity_sensor: config.humidity_sensor,
@@ -467,14 +491,29 @@ export class ClockWeatherCard extends LitElement {
       show_decimal: config.show_decimal ?? false,
       apparent_sensor: config.apparent_sensor ?? undefined,
       aqi_sensor: config.aqi_sensor ?? undefined,
-      temperature_gradient_colors: config.temperature_gradient_colors
+      temperature_color_thresholds: config.temperature_color_thresholds
     }
   }
 
   private getConfiguredGradientMap (): Map<number, Rgb> {
-    const gradientColors = this.config.temperature_gradient_colors ?? defaultGradientColors
+    const thresholds = this.config.temperature_color_thresholds
+    if (thresholds != null && thresholds.length > 0) {
+      const unit = this.getWeather().attributes.temperature_unit
+      const sorted = [...thresholds]
+        .map((t) => {
+          const raw = t.value
+          const value = typeof raw === 'number' ? raw : parseFloat(String(raw))
+          return { value, color: t.color }
+        })
+        .sort((a, b) => a.value - b.value)
+      const fallbackHex = defaultGradientColors[0]
+      return new Map(
+        sorted.map((t) => [this.toCelsius(unit, t.value), this.resolveGradientColorToRgb(t.color, fallbackHex)] as [number, Rgb])
+      )
+    }
+
     return new Map(
-      gradientStops.map((stop, index) => [stop, this.resolveGradientColorToRgb(gradientColors[index], defaultGradientColors[index])] as [number, Rgb])
+      gradientStops.map((stop, index) => [stop, this.resolveGradientColorToRgb(defaultGradientColors[index], defaultGradientColors[index])] as [number, Rgb])
     )
   }
 
